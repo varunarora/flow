@@ -8,7 +8,16 @@ const nextConfig = {
     // your project has type errors.
     // !! WARN !!
     ignoreBuildErrors: true
-  }
+  },
+  async rewrites() {
+    return [
+      {
+        source: '/__/auth/:path*',
+        has: [],
+        destination: 'https://oc-flow.firebaseapp.com/__/auth/:path*',  // Your Firebase project domain
+      },
+    ];
+  },
 }
 
 module.exports = nextConfig
