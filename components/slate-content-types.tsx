@@ -59,35 +59,37 @@ function serializeProperty(key, value, response){
 }
 
 
+const SimpleSlateIframeTemplated = function(body, formatting, {response, updateBody}, {IframeSelector}, template, props){
+    const [properties, setProperties] = useState(body?.properties)
 
-const SimpleSlateIframe = function(template, props=[]){
-    return function(body, formatting, {response, updateBody}, {IframeSelector}){
-        const [properties, setProperties] = useState(body?.properties)
+    const query = useIframeQuery(body, response, (properties) => {
+        var serializedProperties = []
 
-        const query = useIframeQuery(body, response, (properties) => {
-            var serializedProperties = []
+        props.forEach(prop => {
+            if (properties[prop.id] !== undefined){
+                serializedProperties.push(`${prop.id}=${properties[prop.id]}`)
 
-            props.forEach(prop => {
-                if (properties[prop.id] !== undefined){
-                    serializedProperties.push(`${prop.id}=${properties[prop.id]}`)
-
-                } else if (prop.forceParameter && prop.kind === 'boolean'){
-                    serializedProperties.push(`${prop.id}=false`)
-                }
-            })
-
-            return serializedProperties.join('&')
+            } else if (prop.forceParameter && prop.kind === 'boolean'){
+                serializedProperties.push(`${prop.id}=false`)
+            }
         })
 
-        if (body?.properties && query === undefined)
-            return <div className="pt-2 mx-auto"><LoadingSpinner /></div>
+        return serializedProperties.join('&')
+    })
 
-        return <div className='h-full'>
-            {/* Bad way to figure out if this is editable or render */}
-            {IframeSelector ? <IframeSelector /> : null}
-            <iframe src={`${slateHost}/show?template=${template}&${query || ''}`} style={{ width: '100%', height: '100%' }}/>
-        </div>
-    }
+    if (body?.properties && query === undefined)
+        return <div className="pt-2 mx-auto"><LoadingSpinner /></div>
+
+    return <div className='h-full'>
+        {/* Bad way to figure out if this is editable or render */}
+        {IframeSelector ? <IframeSelector /> : null}
+        <iframe src={`${slateHost}/show?template=${template}&${query || ''}`} style={{ width: '100%', height: '100%' }}/>
+    </div>
+}
+
+
+const SimpleSlateIframe = function(body, formatting, {response, updateBody}, {IframeSelector}){
+  return SimpleSlateIframeTemplated(...[...arguments].slice(0, 4), this[0], this[1])
 }
 
 
@@ -585,42 +587,42 @@ export const SLATE_CONTENT_TYPES = [
     {
         name: 'Die',
         template: 'die',
-        component: SimpleSlateIframe('die', contentTypeProperties['die']),
+        component: SimpleSlateIframe.bind(['die', contentTypeProperties['die']]),
         properties: contentTypeProperties['die']
     },
     {
         name: 'Draw',
         template: 'draw',
-        component: SimpleSlateIframe('draw')
+        component: SimpleSlateIframe.bind(['draw', []])
     },
     {
         name: 'Timer',
         template: 'timer',
-        component: SimpleSlateIframe('timer', contentTypeProperties['timer']),
+        component: SimpleSlateIframe.bind(['timer', contentTypeProperties['timer']]),
         properties: contentTypeProperties['timer']
     },
     {
         name: 'Hide Zero Cards',
         template: 'hide-zero-cards',
-        component: SimpleSlateIframe('hide-zero-cards', contentTypeProperties['hide-zero-cards']),
+        component: SimpleSlateIframe.bind(['hide-zero-cards', contentTypeProperties['hide-zero-cards']]),
         properties: contentTypeProperties['hide-zero-cards']
     },
     {
         name: 'Object Length With Centimeter Cubes',
         template: 'object-length-with-centimeter-cubes',
-        component: SimpleSlateIframe('object-length-with-centimeter-cubes', contentTypeProperties['object-length-with-centimeter-cubes']),
+        component: SimpleSlateIframe.bind(['object-length-with-centimeter-cubes', contentTypeProperties['object-length-with-centimeter-cubes']]),
         properties: contentTypeProperties['object-length-with-centimeter-cubes']
     },
     {
         name: 'Fill in the blanks',
         template: 'fill-in-the-blanks',
-        component: SimpleSlateIframe('fill-in-the-blanks', contentTypeProperties['fill-in-the-blanks']),
+        component: SimpleSlateIframe.bind(['fill-in-the-blanks', contentTypeProperties['fill-in-the-blanks']]),
         properties: contentTypeProperties['fill-in-the-blanks']
     },
     {
         name: 'Short response',
         template: 'short-response',
-        component: SimpleSlateIframe('short-response', contentTypeProperties['short-response']),
+        component: SimpleSlateIframe.bind(['short-response', contentTypeProperties['short-response']]),
         properties: contentTypeProperties['short-response']
     }
 ]
